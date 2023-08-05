@@ -40,6 +40,8 @@ export interface AccessKey {
   readonly name: string;
   // Used in metrics reporting to decouple from the real id. Can change.
   readonly metricsId: AccessKeyMetricsId;
+  // Date when the access key was created.
+  readonly createdTimestampMs: number;
   // Parameters to access the proxy
   readonly proxyParams: ProxyParams;
   // Whether the access key has exceeded the data transfer limit.

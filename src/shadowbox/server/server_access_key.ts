@@ -36,6 +36,7 @@ import {PrometheusManagerMetrics} from './manager_metrics';
 interface AccessKeyStorageJson {
   id: AccessKeyId;
   metricsId: AccessKeyId;
+  createdTimestampMs: number;
   name: string;
   password: string;
   port: number;
@@ -57,6 +58,7 @@ class ServerAccessKey implements AccessKey {
     readonly id: AccessKeyId,
     public name: string,
     public metricsId: AccessKeyMetricsId,
+    public createdTimestampMs: number,
     readonly proxyParams: ProxyParams,
     public dataLimit?: DataLimit
   ) {}
@@ -79,6 +81,7 @@ function makeAccessKey(hostname: string, accessKeyJson: AccessKeyStorageJson): A
     accessKeyJson.id,
     accessKeyJson.name,
     accessKeyJson.metricsId,
+    accessKeyJson.createdTimestampMs,
     proxyParams,
     accessKeyJson.dataLimit
   );
@@ -88,6 +91,7 @@ function accessKeyToStorageJson(accessKey: AccessKey): AccessKeyStorageJson {
   return {
     id: accessKey.id,
     metricsId: accessKey.metricsId,
+    createdTimestampMs: accessKey.createdTimestampMs,
     name: accessKey.name,
     password: accessKey.proxyParams.password,
     port: accessKey.proxyParams.portNumber,
@@ -97,10 +101,12 @@ function accessKeyToStorageJson(accessKey: AccessKey): AccessKeyStorageJson {
 }
 
 function isValidCipher(cipher: string): boolean {
-    if (["aes-256-gcm", "aes-192-gcm", "aes-128-gcm", "chacha20-ietf-poly1305"].indexOf(cipher) === -1) {
-      return false;
-    }
-    return true;
+  if (
+    ['aes-256-gcm', 'aes-192-gcm', 'aes-128-gcm', 'chacha20-ietf-poly1305'].indexOf(cipher) === -1
+  ) {
+    return false;
+  }
+  return true;
 }
 
 // AccessKeyRepository that keeps its state in a config file and uses ShadowsocksServer
@@ -182,7 +188,7 @@ export class ServerAccessKeyRepository implements AccessKeyRepository {
       encryptionMethod,
       password,
     };
-    const accessKey = new ServerAccessKey(id, '', metricsId, proxyParams);
+    const accessKey = new ServerAccessKey(id, '', metricsId, Date.now(), proxyParams);
     this.accessKeys.push(accessKey);
     this.saveAccessKeys();
     await this.updateServer();

@@ -201,6 +201,7 @@ describe('OutlineSharedMetricsPublisher', () => {
       return {
         id: (keyId++).toString(),
         metricsId: 'id',
+        createdTimestampMs: 1691249400,
         name: 'name',
         password: 'pass',
         port: 12345,
@@ -291,13 +292,13 @@ class FakeMetricsCollector implements MetricsCollectorClient {
 class ManualUsageMetrics implements UsageMetrics {
   public keyUsage = [] as KeyUsage[];
   public countryUsage = [] as CountryUsage[];
-  
+
   getKeyUsage(): Promise<KeyUsage[]> {
     return Promise.resolve(this.keyUsage);
   }
 
   getCountryUsage(): Promise<CountryUsage[]> {
-    return Promise.resolve(this.countryUsage)
+    return Promise.resolve(this.countryUsage);
   }
 
   reset() {
