@@ -50,6 +50,7 @@ function accessKeyToApiJson(accessKey: AccessKey) {
       })
     ),
     createdTimestampMs: accessKey.createdTimestampMs,
+    expirationTimestampMs: accessKey.expirationTimestampMs,
   };
 }
 
@@ -320,6 +321,7 @@ export class ShadowsocksManagerService {
     try {
       logging.debug(`createNewAccessKey request ${JSON.stringify(req.params)}`);
       let encryptionMethod = req.params.method;
+
       if (!encryptionMethod) {
         encryptionMethod = '';
       }
@@ -331,8 +333,22 @@ export class ShadowsocksManagerService {
           )
         );
       }
+
+      let expirationTimestampMs: number = parseInt(req.params.expirationTimestampMs as string);
+      if (!expirationTimestampMs) {
+        expirationTimestampMs = 0;
+      }
+      if (typeof expirationTimestampMs !== 'number') {
+        return next(
+          new restifyErrors.InvalidArgumentError(
+            {statusCode: 400},
+            `Expected a string expirationTimestampMs, instead got ${expirationTimestampMs} of type ${typeof expirationTimestampMs}`
+          )
+        );
+      }
+
       const accessKeyJson = accessKeyToApiJson(
-        await this.accessKeys.createNewAccessKey(encryptionMethod)
+        await this.accessKeys.createNewAccessKey(encryptionMethod, expirationTimestampMs)
       );
       res.send(201, accessKeyJson);
       logging.debug(`createNewAccessKey response ${JSON.stringify(accessKeyJson)}`);

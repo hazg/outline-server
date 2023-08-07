@@ -42,6 +42,8 @@ export interface AccessKey {
   readonly metricsId: AccessKeyMetricsId;
   // Date when the access key was created.
   readonly createdTimestampMs: number;
+  // Date when the access key will expire.
+  readonly expirationTimestampMs: number;
   // Parameters to access the proxy
   readonly proxyParams: ProxyParams;
   // Whether the access key has exceeded the data transfer limit.
@@ -52,7 +54,7 @@ export interface AccessKey {
 
 export interface AccessKeyRepository {
   // Creates a new access key. Parameters are chosen automatically.
-  createNewAccessKey(encryptionMethod?: string): Promise<AccessKey>;
+  createNewAccessKey(encryptionMethod?: string, expirationTimestampMs?: number): Promise<AccessKey>;
   // Removes the access key given its id. Throws on failure.
   removeAccessKey(id: AccessKeyId);
   // Returns the access key with the given id. Throws on failure.

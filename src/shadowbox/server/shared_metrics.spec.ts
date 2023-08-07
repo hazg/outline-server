@@ -202,6 +202,7 @@ describe('OutlineSharedMetricsPublisher', () => {
         id: (keyId++).toString(),
         metricsId: 'id',
         createdTimestampMs: 1691249400,
+        expirationTimestampMs: 1691249400 + 24 * 60 * 60 * 1000,
         name: 'name',
         password: 'pass',
         port: 12345,

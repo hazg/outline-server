@@ -37,6 +37,7 @@ interface AccessKeyStorageJson {
   id: AccessKeyId;
   metricsId: AccessKeyId;
   createdTimestampMs: number;
+  expirationTimestampMs: number;
   name: string;
   password: string;
   port: number;
@@ -59,6 +60,7 @@ class ServerAccessKey implements AccessKey {
     public name: string,
     public metricsId: AccessKeyMetricsId,
     public createdTimestampMs: number,
+    public expirationTimestampMs: number,
     readonly proxyParams: ProxyParams,
     public dataLimit?: DataLimit
   ) {}
@@ -82,6 +84,7 @@ function makeAccessKey(hostname: string, accessKeyJson: AccessKeyStorageJson): A
     accessKeyJson.name,
     accessKeyJson.metricsId,
     accessKeyJson.createdTimestampMs,
+    accessKeyJson.expirationTimestampMs,
     proxyParams,
     accessKeyJson.dataLimit
   );
@@ -92,6 +95,7 @@ function accessKeyToStorageJson(accessKey: AccessKey): AccessKeyStorageJson {
     id: accessKey.id,
     metricsId: accessKey.metricsId,
     createdTimestampMs: accessKey.createdTimestampMs,
+    expirationTimestampMs: accessKey.expirationTimestampMs,
     name: accessKey.name,
     password: accessKey.proxyParams.password,
     port: accessKey.proxyParams.portNumber,
@@ -115,6 +119,7 @@ function isValidCipher(cipher: string): boolean {
 export class ServerAccessKeyRepository implements AccessKeyRepository {
   private static DATA_LIMITS_ENFORCEMENT_INTERVAL_MS = 60 * 60 * 1000; // 1h
   private NEW_USER_ENCRYPTION_METHOD = 'chacha20-ietf-poly1305';
+  private EXPITATION_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
   private accessKeys: ServerAccessKey[];
 
   constructor(
@@ -172,12 +177,16 @@ export class ServerAccessKeyRepository implements AccessKeyRepository {
     this.portForNewAccessKeys = port;
   }
 
-  async createNewAccessKey(encryptionMethod?: string): Promise<AccessKey> {
+  async createNewAccessKey(
+    encryptionMethod?: string,
+    expirationTimestampMs?: number
+  ): Promise<AccessKey> {
     const id = this.keyConfig.data().nextId.toString();
     this.keyConfig.data().nextId += 1;
     const metricsId = uuidv4();
     const password = generatePassword();
     encryptionMethod = encryptionMethod || this.NEW_USER_ENCRYPTION_METHOD;
+    expirationTimestampMs = expirationTimestampMs || Date.now() + this.EXPITATION_INTERVAL_MS;
     // Validate encryption method.
     if (!isValidCipher(encryptionMethod)) {
       throw new errors.InvalidCipher(encryptionMethod);
@@ -188,7 +197,14 @@ export class ServerAccessKeyRepository implements AccessKeyRepository {
       encryptionMethod,
       password,
     };
-    const accessKey = new ServerAccessKey(id, '', metricsId, Date.now(), proxyParams);
+    const accessKey = new ServerAccessKey(
+      id,
+      '',
+      metricsId,
+      Date.now(),
+      expirationTimestampMs,
+      proxyParams
+    );
     this.accessKeys.push(accessKey);
     this.saveAccessKeys();
     await this.updateServer();
