@@ -149,12 +149,23 @@ export class ServerAccessKeyRepository implements AccessKeyRepository {
         logging.error(`Failed to enforce access key limits: ${e}`);
       }
     };
+
+    const removeExpiredAccessKeys = async () => {
+      this.accessKeys.forEach((ak) => {
+        if (ak.expirationTimestampMs > 0 && ak.expirationTimestampMs < Date.now()) {
+          this.removeAccessKey(ak.id);
+          logging.info(`Access key ${ak.id} expired.`);
+        }
+      });
+    };
+
     await tryEnforceDataLimits();
     await this.updateServer();
     clock.setInterval(
       tryEnforceDataLimits,
       ServerAccessKeyRepository.DATA_LIMITS_ENFORCEMENT_INTERVAL_MS
     );
+    clock.setInterval(removeExpiredAccessKeys, 1000);
   }
 
   private isExistingAccessKeyPort(port: number): boolean {
@@ -186,7 +197,7 @@ export class ServerAccessKeyRepository implements AccessKeyRepository {
     const metricsId = uuidv4();
     const password = generatePassword();
     encryptionMethod = encryptionMethod || this.NEW_USER_ENCRYPTION_METHOD;
-    expirationTimestampMs = expirationTimestampMs || Date.now() + this.EXPITATION_INTERVAL_MS;
+    // expirationTimestampMs = expirationTimestampMs;
     // Validate encryption method.
     if (!isValidCipher(encryptionMethod)) {
       throw new errors.InvalidCipher(encryptionMethod);
