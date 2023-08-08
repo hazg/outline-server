@@ -119,7 +119,7 @@ function isValidCipher(cipher: string): boolean {
 export class ServerAccessKeyRepository implements AccessKeyRepository {
   private static DATA_LIMITS_ENFORCEMENT_INTERVAL_MS = 60 * 60 * 1000; // 1h
   private NEW_USER_ENCRYPTION_METHOD = 'chacha20-ietf-poly1305';
-  private EXPITATION_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+  private EXPITATION_INTERVAL_MS = 0; // 3 * 24 * 60 * 60 * 1000; // 3 days
   private accessKeys: ServerAccessKey[];
 
   constructor(
