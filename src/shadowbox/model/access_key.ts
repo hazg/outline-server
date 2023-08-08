@@ -77,4 +77,6 @@ export interface AccessKeyRepository {
   setAccessKeyDataLimit(id: AccessKeyId, limit: DataLimit): void;
   // Removes the custom data limit from access key `id`.
   removeAccessKeyDataLimit(id: AccessKeyId): void;
+  // Set expiration timestamp for access key `id`.
+  setExpirationTimestamp(id: AccessKeyId, expirationTimestampMs: number): void;
 }

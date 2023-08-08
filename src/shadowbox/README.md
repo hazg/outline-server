@@ -202,3 +202,12 @@ rm /tmp/outline/persisted-state/shadowbox_server_config.json
 ```
 
 This will warn about deleting a write-protected file, which is okay to ignore. You will then need to hand-edit the JSON string in src/shadowbox/docker/start.action.sh.
+
+### Building docker image
+
+```
+export SB_IMAGE=you/repository
+npm run action shadowbox/docker/build
+cd src/shadowbox/docker
+docker push you/repository
+```

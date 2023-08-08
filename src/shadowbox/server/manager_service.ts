@@ -135,7 +135,13 @@ export function bindService(
 
   apiServer.get(`${apiPrefix}/access-keys/:id`, service.getAccessKey.bind(service));
   apiServer.del(`${apiPrefix}/access-keys/:id`, service.removeAccessKey.bind(service));
+  apiServer.put(
+    `${apiPrefix}/access-keys/expire/:id`,
+    service.setExpirationTimestamp.bind(service)
+  );
+
   apiServer.put(`${apiPrefix}/access-keys/:id/name`, service.renameAccessKey.bind(service));
+
   apiServer.put(
     `${apiPrefix}/access-keys/:id/data-limit`,
     service.setAccessKeyDataLimit.bind(service)
@@ -298,6 +304,31 @@ export class ShadowsocksManagerService {
       }
       return next(error);
     }
+  }
+
+  // Add expiration date
+  setExpirationTimestamp(req: RequestType, res: ResponseType, next: restify.Next): void {
+    logging.debug(`setExpirationTimestamp request ${JSON.stringify(req.params)}`);
+    const accessKeyId = validateAccessKeyId(req.params.id);
+    const timestamp = parseInt(req.params.expirationTimestampMs as string);
+
+    if (!timestamp) {
+      return next(
+        new restifyErrors.MissingParameterError(
+          {statusCode: 400},
+          'Parameter `expirationTimestampMs` is missing'
+        )
+      );
+    }
+
+    if (!accessKeyId) {
+      return next(
+        new restifyErrors.MissingParameterError({statusCode: 400}, 'Parameter `id` is missing')
+      );
+    }
+    this.accessKeys.setExpirationTimestamp(accessKeyId, timestamp);
+    res.send(HttpSuccess.NO_CONTENT);
+    next();
   }
 
   // Lists all access keys

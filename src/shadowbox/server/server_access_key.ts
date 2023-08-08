@@ -243,6 +243,12 @@ export class ServerAccessKeyRepository implements AccessKeyRepository {
     this.saveAccessKeys();
   }
 
+  setExpirationTimestamp(id: AccessKeyId, expirationDate: number) {
+    const accessKey = this.getAccessKey(id);
+    accessKey.expirationTimestampMs = expirationDate;
+    this.saveAccessKeys();
+  }
+
   setAccessKeyDataLimit(id: AccessKeyId, limit: DataLimit): void {
     this.getAccessKey(id).dataLimit = limit;
     this.saveAccessKeys();
